@@ -1,0 +1,18 @@
+// 4.2.1	Summarize by 
+let start_time = ago(14d); 
+fWindowsEvent
+| where TimeGenerated > start_time 
+| where Channel =='Security'
+| where EventID == 5145
+| where EventData.ShareName contains 'IPC'
+| extend RelativeTargetName = tostring(EventData.RelativeTargetName)
+| summarize count() by RelativeTargetName
+
+// 4.2.2	Checking connections
+let start_time = ago(14d); 
+fWindowsEvent
+| where TimeGenerated > start_time 
+| where Channel =='Security'
+| where EventID == 5156
+| extend App = tostring(EventData.Application)
+| extend IP = tostring(EventData.DestAddress)

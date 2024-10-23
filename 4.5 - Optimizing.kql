@@ -1,0 +1,14 @@
+fWindowsEvent
+| extend ProcessId = toint(EventData.ProcessId)
+| extend ParentProcessGuid = tostring(EventData.ParentProcessGuid)
+| extend Image = tostring(EventData.Image)
+| where Channel == "Microsoft-Windows-Sysmon/Operational" 
+| where EventID ==1 
+| join kind=innerunique   (
+fWindowsEvent
+| extend ParentImage=tostring(EventData.ParentImage)
+| extend ProcessGuid = tostring(EventData.ProcessGuid)
+| where EventData.ParentImage endswith "services.exe"
+) on $left.ParentProcessGuid == $right.ProcessGuid
+|where Image endswith 'python.exe'
+| distinct TimeGenerated, Image, ParentImage, Computer

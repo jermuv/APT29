@@ -1,0 +1,14 @@
+// 4.4.1	Finding rare processes
+let Sensitivity = 15;
+fWindowsEvent
+| where EventID == 4688
+| extend ProcArray = split(EventData.NewProcessName, '\\')
+// ProcArrayLength is Folder Depth
+| extend ProcArrayLength = array_length(ProcArray)
+| extend LastIndex = ProcArrayLength - 1
+| extend Proc = ProcArray[LastIndex]
+// ProcArray[0] is the proc's Drive
+| extend DriveDepthProc = strcat(ProcArray[0], '-', ProcArrayLength, '-', Proc)
+| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), TimesSeen = count(), HostCount = dcount(Computer), Hosts = make_set(Computer), UserCount = dcount(tostring(EventData.SubjectUserName)), Users = make_set(tostring(EventData.SubjectUserName)) by DriveDepthProc
+| where TimesSeen < Sensitivity
+| extend timestamp = StartTimeUtc
